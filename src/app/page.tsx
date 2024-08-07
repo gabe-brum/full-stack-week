@@ -1,5 +1,5 @@
 import { SearchIcon } from "lucide-react"
-import { Header } from "./_components/ui/header"
+import { Header } from "./_components/header"
 import { Input } from "./_components/ui/input"
 import { Button } from "./_components/ui/button"
 import Image from "next/image"
@@ -76,12 +76,6 @@ export default async function Home() {
           ))}
         </div>
       </div>
-
-      <footer className="bg-[#1A1B1F] px-5 py-6">
-        <p className="text-sm text-gray-400">
-          © 2023 Copyright <strong>FSW Barber</strong>
-        </p>
-      </footer>
     </div>
   )
 }
