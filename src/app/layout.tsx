@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "sonner"
+import AuthProvider from "./_providers/auth"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -18,13 +19,17 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={inter.className}>
-        {children}
+        <AuthProvider>
+          <div className="flex h-full flex-col">
+            <div className="flex-1">{children}</div>
+            <footer className="bg-[#1A1B1F] px-5 py-6">
+              <p className="text-sm text-gray-400">
+                © 2023 Copyright <strong>FSW Barber</strong>
+              </p>
+            </footer>
+          </div>
+        </AuthProvider>
         <Toaster />
-        <footer className="bg-[#1A1B1F] px-5 py-6">
-          <p className="text-sm text-gray-400">
-            © 2023 Copyright <strong>FSW Barber</strong>
-          </p>
-        </footer>
       </body>
     </html>
   )
