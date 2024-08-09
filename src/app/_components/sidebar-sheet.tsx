@@ -48,6 +48,23 @@ const SidebarSheet = () => {
     )
   }
 
+  function renderLogoutButton() {
+    if (!data?.user) return null
+
+    return (
+      <div className="flex flex-col gap-2 py-5">
+        <Button
+          variant="ghost"
+          className="justify-start gap-2"
+          onClick={handleLogoutClick}
+        >
+          <LogOutIcon size={18} />
+          Sair da conta
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <SheetContent className="overflow-y-auto">
       <SheetHeader>
@@ -91,16 +108,7 @@ const SidebarSheet = () => {
         ))}
       </div>
 
-      <div className="flex flex-col gap-2 py-5">
-        <Button
-          variant="ghost"
-          className="justify-start gap-2"
-          onClick={handleLogoutClick}
-        >
-          <LogOutIcon size={18} />
-          Sair da conta
-        </Button>
-      </div>
+      {renderLogoutButton()}
     </SheetContent>
   )
 }
