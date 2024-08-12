@@ -14,8 +14,8 @@ import {
 } from "./ui/sheet"
 import { Calendar } from "./ui/calendar"
 import { ptBR } from "date-fns/locale"
-import { useEffect, useState } from "react"
-import { format, set } from "date-fns"
+import { useEffect, useMemo, useState } from "react"
+import { format, isPast, isToday, set } from "date-fns"
 import { createBooking } from "../_actions/create-booking"
 import { toast } from "sonner"
 import { useSession } from "next-auth/react"
@@ -52,10 +52,22 @@ const TIME_LIST = [
   "19:00",
 ]
 
-const getTimeList = (bookings: Booking[]) => {
+interface GetTimeListParams {
+  bookings: Booking[]
+  selectedDay: Date
+}
+
+const getTimeList = ({ bookings, selectedDay }: GetTimeListParams) => {
   return TIME_LIST.filter((time) => {
     const hour = Number(time.split(":")[0])
     const minute = Number(time.split(":")[1])
+
+    const timeIsOnThePast = isPast(
+      set(new Date(), { hours: hour, minutes: minute }),
+    )
+    if (timeIsOnThePast && isToday(selectedDay)) {
+      return false
+    }
 
     const hasBookingsOnCurrentTime = bookings.some(
       (booking) =>
@@ -81,6 +93,14 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
   const [isSignInDialogOpen, setIsSignInDialogOpen] = useState(false)
 
   const { data } = useSession()
+
+  const timeList = useMemo(() => {
+    if (!selectedDay) return []
+    return getTimeList({
+      bookings: dayBookings,
+      selectedDay,
+    })
+  }, [dayBookings, selectedDay])
 
   useEffect(() => {
     const fetch = async () => {
@@ -145,21 +165,20 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
 
     return (
       <div className="flex gap-3 overflow-x-auto border-b border-solid p-5 [&::webkit-scrollbar]:hidden">
-        {getTimeList(dayBookings).map((time) => {
-          const buttonTimeSelectingVariant =
-            selectedTime === time ? "default" : "outline"
-
-          return (
+        {timeList.length > 0 ? (
+          timeList.map((time) => (
             <Button
               key={time}
-              variant={buttonTimeSelectingVariant}
+              variant={selectedTime === time ? "default" : "outline"}
               className="rounded-full"
               onClick={() => handleTimeSelect(time)}
             >
               {time}
             </Button>
-          )
-        })}
+          ))
+        ) : (
+          <p className="text-xs">Não há horários disponíveis para este dia.</p>
+        )}
       </div>
     )
   }

@@ -6,8 +6,13 @@ import { db } from "./_lib/prisma"
 import { quickSearchOptions } from "./_constants/quickSearch"
 import { BookingItem } from "./_components/booking-item"
 import Search from "./_components/search"
+import { getServerSession } from "next-auth"
+import { authOptions } from "./_lib/auth"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
 
 export default async function Home() {
+  const session = await getServerSession(authOptions)
   const barbershops = await db.barbershop.findMany({})
   const popularBarbershops = await db.barbershop.findMany({
     orderBy: {
@@ -15,12 +20,43 @@ export default async function Home() {
     },
   })
 
+  const confirmedBookings = session?.user
+    ? await db.booking.findMany({
+        where: {
+          userId: (session.user as any).id,
+          date: {
+            gte: new Date(),
+          },
+        },
+        include: {
+          service: {
+            include: {
+              barbershop: true,
+            },
+          },
+        },
+        orderBy: {
+          date: "asc",
+        },
+      })
+    : []
+
   return (
     <div>
       <Header />
       <div className="p-5">
-        <h2 className="text-xl font-bold">Olá Gabriel</h2>
-        <p>Segunda-feira, 05 de agosto</p>
+        <h2 className="text-xl font-bold">
+          Olá, {session?.user ? session.user.name : "bem-vindo"}!
+        </h2>
+        <p>
+          <span className="capitalize">
+            {format(new Date(), "EEEE, dd", { locale: ptBR })}
+          </span>
+          <span>&nbsp;de&nbsp;</span>
+          <span className="capitalize">
+            {format(new Date(), "MMMM", { locale: ptBR })}
+          </span>
+        </p>
         <div className="mt-6">
           <Search />
         </div>
@@ -52,7 +88,16 @@ export default async function Home() {
           />
         </div>
 
-        <BookingItem />
+        {confirmedBookings.length > 0 && (
+          <h2 className="mb-3 mt-6 text-xs font-bold uppercase text-gray-400 antialiased">
+            Agendamentos
+          </h2>
+        )}
+        <div className="[::webkit-scrollbar]:hidden flex gap-3 overflow-x-auto">
+          {confirmedBookings.map((booking) => (
+            <BookingItem booking={booking} key={booking.id} />
+          ))}
+        </div>
 
         <h2 className="mb-3 mt-6 text-xs font-bold uppercase text-gray-400 antialiased">
           Recomendados
